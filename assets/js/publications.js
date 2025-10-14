@@ -98,16 +98,16 @@ function FiltersBar(state, setState, allProjectTags) {
   searchRow.append(input, b1, b2, b3);
 
   const tagsRow = el('div', { class: 'pf-tags' });
-  tagsRow.appendChild(el('span', { class: 'pf-muted' }, 'Project tags:'));
   allProjectTags.forEach(t => {
     const chip = el('span', { class: 'pf-chip' + (state.projectTags.includes(t) ? ' active' : ''), onclick: () => toggleTag(t) }, t);
     tagsRow.appendChild(chip);
   });
   if (state.projectTags.length > 0) {
-    tagsRow.appendChild(el('button', { class: 'pf-btn', onclick: () => setState({ projectTags: [] }) }, 'Clear'));
+    tagsRow.appendChild(el('span', { class: 'pf-clr_btn', onclick: () => setState({ projectTags: [] }) }, 'Clear'));
   }
 
-  row.append(searchRow, tagsRow);
+  row.appendChild(searchRow);
+  row.appendChild(tagsRow);
   wrap.appendChild(row);
   return wrap;
 

@@ -9,23 +9,26 @@
 /* HERO overrides for this page */
 .publications-hero {
   background: url("../../images/BG.png") center center / cover no-repeat;
-  padding: 40px 0 60px;
+  padding: 20px 0 20px;
 }
-.publications-hero .hero-content h1 {
-  background: rgba(35,35,35,0.85);
-  color: #fff;
-  display: inline-block;
-  padding: 16px 20px;
-  margin: 0 0 8px;
+.publicationhero-content {
+background-color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  padding: 20px 40px;
+  border-radius: 8px;
+}
+.publicationhero-content h1 {
+  color: #000000;
+  padding: 0px 0px;
+  margin: 0 0 0px;
   font-family: 'Anton', Arial, sans-serif;
   font-size: 42px;
-  line-height: 1.1;
+  line-height: 1;
 }
-.publications-hero .hero-content p {
-  background: rgba(35,35,35,0.85);
-  color: #fff;
-  display: inline-block;
-  padding: 8px 12px;
+.publicationhero-content p {
+  color: #000000;
+  font-family: 'Epilogue', Arial, sans-serif;
+  padding: 0px 12px;
   margin: 0;
 }
 
@@ -40,19 +43,23 @@
   margin-bottom: 20px;
 }
 .pf-row {
-  display: flex; flex-wrap: wrap; gap: 12px;
+  display: flex; flex-wrap: wrap; gap: 12px; flex-direction: column; gap: 0.5em;
   align-items: center; justify-content: space-between;
 }
 .pf-search { display: flex; gap: 8px; align-items: center; flex: 1; }
 .pf-search input[type="text"] {
-  border: 2px solid var(--text-color);
+  border: 1px solid var(--text-color);
   padding: 8px 10px; border-radius: 0; min-width: 260px;
 }
-.pf-btn { border: 2px solid var(--text-color); background: #fff; padding: 8px 10px; cursor: pointer; }
+.pf-btn { border: 1px solid var(--text-color); background: #fff; padding: 4px 8px; cursor: pointer; }
+.pf-btn:hover { background: var(--text-color); color: #fff; border-color: var(--text-color); transition: background 0.2s, color 0.2s, border-color 0.2s;}
 .pf-tags { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.pf-chip { display: inline-block; border: 2px solid var(--text-color); padding: 2px 8px; text-transform: uppercase; font-size: 12px; cursor: pointer; }
-.pf-chip.active { background: var(--text-color); color: #fff; }
-.pf-muted { color: var(--text-color); opacity: .6; text-transform: uppercase; letter-spacing: 1px; }
+.pf-chip { display: inline-block; background-color:#eeeeee; color: #7b7b7b; border: 1px solid var(#eeeeee); padding: 4px 8px; text-transform: uppercase; font-size: 12px; cursor: pointer; }
+.pf-chip:hover { display: inline-block; background-color:#7b7b7b; color: #c4c4c4; border: 1px solid var(#7b7b7b); padding: 4px 8px; text-transform: uppercase; font-size: 12px; cursor: pointer;transition: background 0.2s, color 0.2s, border-color 0.2s; }
+.pf-chip.active { background-color:#7b7b7b; color: #c4c4c4; }
+.pf-muted { color: var(--text-color); opacity: .6; letter-spacing: 1px; }
+.pf-clr_btn {display: inline-block; color: #7b7b7b;  padding: 4px 8px; font-size: 12px; cursor: pointer; }
+.pf-clr_btn:hover { display: inline-block; background-color:#7b7b7b; color: #eeeeee; border: 1px solid var(#7b7b7b); padding: 4px 8px; font-size: 12px; cursor: pointer;transition: background 0.2s, color 0.2s, border-color 0.2s; }
 
 /* GRID + CARDS */
 .pubs-app .grid {
