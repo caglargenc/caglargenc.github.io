@@ -15,12 +15,11 @@
       <img src="images/Logo.png" alt="Play-Bio Logo">
     </div>
     <nav id="nav">
-      <a href="index.html">Home</a>
-      <a href="about.html">About</a>
-      <a href="projects.html">Projects</a>
-      <a href="publications.html" aria-current="page">Publications</a>
-      <a href="team.html">Team</a>
-      <a href="contact.html">Contact</a>
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="eiy.html">Explore it Yourself</a>
+        <a href="publications.html">Publications</a>
+        <a href="contact.html">Contact</a>
     </nav>
   </section>
 
@@ -39,27 +38,29 @@
   </main>
 
   <!-- FOOTER (reuses your existing structure) -->
-  <section class="footer">
-    <div class="footer-container">
-      <div class="footer-content">
-        <div class="footer-box">
-          <h3>Principle Investigator</h3>
-          <p>Dr. Çağlar Genç</p><br>
-          <p>genc[dot]caglar[at]tuni[dot]fi</p>
+    <section class="footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-box">
+                    <h3>Principle Investigator</h3>
+                    <p>Dr. Çağlar Genç <br>
+                    genc[dot]caglar[at]tuni[dot]fi</p>
+                </div>
+                <div class="footer-box" style="text-align: center;">
+                    <img src="images/RCF.png" alt="Research Council of Finland Logo" style="max-width: 200px;">
+                </div>
+                <div class="footer-box" style="text-align: right;">
+                    <h3>Follow</h3>
+                    <p><a href="https://www.instagram.com/play.bio/">Instagram</a></p>
+                    <p><a href="https://www.linkedin.com/in/caglar-genc-5b0b9820b/">LinkedIn</a></p>
+                </div>
+            </div>
         </div>
-        <div class="footer-box">
-          <img src="images/RCF.png" alt="Research Council of Finland Logo" style="max-width: 300px;">
-        </div>
-        <div class="footer-box" style="text-align: right;">
-          <h3>Follow</h3>
-          <p><a href="https://www.instagram.com/play.bio/">Instagram</a></p>
-          <p><a href="https://www.linkedin.com/in/caglar-genc-5b0b9820b/">LinkedIn</a></p>
-          <p><a href="https://tuni.fi/en/staff/caglar-genc">TUNI Profile</a></p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <script src="assets/js/publications.js"></script>
+    </section>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script>
+    window.PUBS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS2d10S9sxfLL3OHLvocAyV6Ft24iBEY5kjI4eAq-jxTVEz8h5gB4idtlH7MyRpocDrz3F5Mclg0JJh/pub?gid=0&single=true&output=csv';
+    </script>
+    <script src="assets/js/publications.js"></script>
 </body>
 </html>

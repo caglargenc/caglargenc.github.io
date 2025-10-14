@@ -1,31 +1,56 @@
 // ===== Data (replace with real publications) =====
-const PUBLICATIONS = [
-  {
-    id: 'design-abstractions-2024',
-    title: 'Designing our way through abstractions: calling for more practice-based more-than-human design research',
-    authors: ['Çağlar Genç', 'Ferran Altarriba Bertran', 'Linas Gabrielaitis', 'Esthiak Ahmed', 'Velvet Spors'],
-    year: 2024,
-    venue: 'Proceedings of the Halfway to the Future Symposium (HttF)',
-    abstractShort: 'We argue for practice-based MtH design via five hands-on cases—showing how embodied, situated practice makes MtH theories actionable.',
-    abstractFull: 'Human-computer interaction (HCI) researchers increasingly recognize the importance of attending to other-than-humans in their practice. The More-than-Human (MtH) turn to HCI, seeking to challenge human-centered approaches, is undergoing rapid evolution with exciting advances on many fronts. Yet, abstract notions of MtH theories become quickly messy in practice. Here, we emphasize the need for practice-based MtH design research to unpack these. We discuss five case studies of our own work to illustrate how MtH research can be performed from the bottom up, leaning heavily on hands-on design practice (rather than solely theory-driven reasoning): backpacking in nature, growing mushroom composites, performing with robots as nature companions, walking in a city to attune gravel and geological processes, and playing nature in video games in MtH design contexts. Our contribution, thus, foregrounds the value of embodied, situated, and designerly approaches, encouraging research that makes MtH design actionable from a practical perspective.',
-    image: '/images/publications/des-abs.png',
-    links: { pdf: 'https://dl.acm.org/doi/pdf/10.1145/3686169.3686195', doi: 'https://doi.org/10.1145/3686169.3686195'},
-    projectTags: ['More-than-Human', 'Design'],
-},
-  {
-    id: 'shroom-cards-2025',
-    title: 'Exploring Roles and Purposes in More-than-Human Design through a Reflexive Design Studio Experiment',
-    authors: ['Çağlar Genç', 'Ferran Altarriba Bertran', 'Oğuz Oz Buruk', 'Sangwon Jung', 'Velvet Spors', 'Juho Hamari'],
-    year: 2025,
-    venue: 'Proceedings of the Academic Mindtrek Conference',
-    abstractShort: 'We present a reflexive design studio exploring human–non-human relations through the metaphor of a mushroom basket, articulating roles and purposes that offer a practical framework for nuanced More-than-Human (MtH) design.',
-    abstractFull: 'We are witnessing a shift towards a more-than-human (MtH) paradigm in HCI, recognizing non-human beings as interconnected with our existence, from daily life to design. While exciting MtH design works have emerged, they often rely on abstract concepts such as decentering that remain open to interpretation, leaving practical nuances underexplored. To address this, we adopted a bottom-up Research through Design approach—a Reflexive Design Studio—where, as a design team, we created and reflected on conceptual designs using the mushroom basket as a metaphor to explore human–non-human relationalities. From these explorations, we articulated roles (such as humans as materials and non-humans as co-makers) and purposes (such as activism, collective survival, and approximation) that illustrate how MtH design might be practiced with nuance. Relating these to theory and prior work, we contribute an exploratory framework offering generative and critical starting points for future MtH design research to test, contest, expand, and engage with MtH complexities in practice.',
-    image: '/images/publications/shroom.jpg',
-    links: { pdf: '#', doi: '#'},
-    projectTags: ['More-than-Human', 'Design','Fungi' ],
-},
+let PUBLICATIONS = [];
 
-];
+function parseRow(r){
+  const authors = (r.authors || '').split(';').map(s => s.trim()).filter(Boolean);
+  const projectTags = (r.projectTags || '').split(';').map(s => s.trim()).filter(Boolean);
+  const links = {
+    pdf: r.pdf && r.pdf !== '#' ? r.pdf : '',
+    doi: r.doi && r.doi !== '#' ? r.doi : ''
+  };
+  return {
+    id: r.id,
+    title: r.title,
+    authors,
+    year: Number(r.year) || '',
+    venue: r.venue || '',
+    abstractShort: r.abstractShort || '',
+    abstractFull: r.abstractFull || '',
+    image: r.image || '',
+    links,
+    projectTags
+  };
+}
+
+function loadPublicationsFromCSV(url){
+  return new Promise((resolve, reject) => {
+    if (!url) return reject(new Error('CSV URL missing'));
+    Papa.parse(url, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: (res) => {
+        try {
+          const rows = res.data.map(parseRow).filter(p => p.id && p.title);
+          resolve(rows);
+        } catch(e){ reject(e); }
+      },
+      error: (err) => reject(err)
+    });
+  });
+}
+
+// Bootstrapping: load then render
+(async function init(){
+  try {
+    PUBLICATIONS = await loadPublicationsFromCSV(window.PUBS_CSV_URL);
+  } catch (e){
+    console.error('Failed to load publications from CSV:', e);
+    PUBLICATIONS = []; // fallback: keep empty or define a tiny hardcoded sample
+  }
+  render(); // call your existing render() after data is ready
+})();
+
 
 // ===== Utils =====
 const uniqSorted = (arr) => Array.from(new Set(arr)).sort((a,b) => String(a).localeCompare(String(b)));
@@ -153,18 +178,21 @@ function PublicationDetail(pub, onBack){
   const root = el('div', { class: 'detail' });
   root.appendChild(el('button', { class: 'link-sm back-link', onclick: onBack }, '← Back to all publications'));
 
-  const grid = el('div', { class: 'detail-grid' });
-  const left = el('div', { class: 'detail-left' }, [
-    (function(){ const bx = el('div', { class: 'imgbox' }); bx.appendChild(el('img', { src: pub.image, alt: pub.title })); return bx; })()
-  ]);
-
-  const right = el('div', {}, [
+  const grid = el('div', { class: 'detail-grid' }, [
+  el('div', { class: 'detail-left' }, [
+    (function(){
+      const bx = el('div', { class: 'imgbox' });
+      bx.appendChild(el('img', { src: pub.image, alt: pub.title }));
+      return bx;
+    })()
+  ]),
+  el('div', {}, [
     el('h1', { class: 'detail-title' }, pub.title),
     el('div', { class: 'detail-sub' }, pub.authors.join(', ')),
     el('div', { class: 'detail-sub' }, [
-        el('br'),
-        el('em', {}, pub.venue),
-        document.createTextNode(` · ${pub.year}`)
+      el('br'),
+      el('em', {}, pub.venue),
+      document.createTextNode(` · ${pub.year}`)
     ]),
     (function(){ const wrap = el('div', { class: 'detail-tags' }); (pub.projectTags||[]).forEach(t => wrap.appendChild(el('span', { class: 'pf-chip' }, t))); return wrap; })(),
     el('p', { class: 'detail-abstract' }, pub.abstractFull || pub.abstract || pub.abstractShort || ''),
@@ -172,20 +200,11 @@ function PublicationDetail(pub, onBack){
       const row = el('div', { class: 'links' });
       if (pub.links?.pdf) row.appendChild(el('a', { class: 'link-sm', href: pub.links.pdf, target: '_blank', rel: 'noreferrer' }, 'PDF'));
       if (pub.links?.doi) row.appendChild(el('a', { class: 'link-sm', href: pub.links.doi, target: '_blank', rel: 'noreferrer' }, 'DOI'));
-      row.appendChild(el('span', {
-        class: 'link-sm',
-        onclick: () => {
-          const url = buildShareUrl(pub.id);
-          navigator.clipboard?.writeText(url);
-          alert(`Link copied to clipboard! ${url}`);
-        }
-      }, 'Copy link'));
       return row;
     })()
-  ]);
-
-  grid.append(left, right);
-  root.appendChild(grid);
+  ])
+]);
+root.appendChild(grid);
   return root;
 }
 
