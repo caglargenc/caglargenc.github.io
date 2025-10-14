@@ -1,49 +1,30 @@
 // ===== Data (replace with real publications) =====
 const PUBLICATIONS = [
   {
-    id: 'mth-play-2025',
-    title: 'Potential of Play for Knowing Differently in More-than-Human Worlds',
-    authors: ['Your Name', 'Coauthor One', 'Coauthor Two'],
-    year: 2025,
-    venue: 'CHI PLAY 2025 (PoP)',
-    abstract: 'We explore play as a method for attuning to more-than-human relations, outlining design implications for situated practice and joyful care.',
-    image: 'https://images.unsplash.com/photo-1520975940209-28fdb06f2fdb?q=80&w=1600&auto=format&fit=crop',
-    links: { pdf: '#', doi: '#', publisher: '#' },
-    projectTags: ['More-than-Human', 'Play'],
-  },
-  {
-    id: 'studio-roles-2025',
-    title: 'Exploring Roles & Purposes in More-than-Human Design',
-    authors: ['Your Name', 'Coauthor Three'],
-    year: 2025,
-    venue: 'Design Research Society (DRS)',
-    abstract: 'A reflexive design studio experiment mapping roles and purposes in more-than-human design through hands-on probes.',
-    image: 'https://images.unsplash.com/photo-1529101091764-c3526daf38fe?q=80&w=1600&auto=format&fit=crop',
-    links: { pdf: '#', doi: '#', publisher: '#' },
-    projectTags: ['More-than-Human', 'Studio'],
-  },
-  {
-    id: 'mycelium-ethno-2024',
-    title: 'Playing-alongside Shroom Growth: Joyful Care with Mycelium',
-    authors: ['Your Name', 'Collaborator'],
+    id: 'design-abstractions-2024',
+    title: 'Designing our way through abstractions: calling for more practice-based more-than-human design research',
+    authors: ['Çağlar Genç', 'Ferran Altarriba Bertran', 'Linas Gabrielaitis', 'Esthiak Ahmed', 'Velvet Spors'],
     year: 2024,
-    venue: 'Journal of Sustainable HCI',
-    abstract: 'A collaborative ethnography examining playful care practices around growing mycelium and implications for sustainable interaction design.',
-    image: 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?q=80&w=1600&auto=format&fit=crop',
-    links: { pdf: '#', doi: '#', publisher: '#' },
-    projectTags: ['Fungi', 'Care'],
-  },
+    venue: 'Proceedings of the Halfway to the Future Symposium (HttF)',
+    abstractShort: 'We argue for practice-based MtH design via five hands-on cases—showing how embodied, situated practice makes MtH theories actionable.',
+    abstractFull: 'Human-computer interaction (HCI) researchers increasingly recognize the importance of attending to other-than-humans in their practice. The More-than-Human (MtH) turn to HCI, seeking to challenge human-centered approaches, is undergoing rapid evolution with exciting advances on many fronts. Yet, abstract notions of MtH theories become quickly messy in practice. Here, we emphasize the need for practice-based MtH design research to unpack these. We discuss five case studies of our own work to illustrate how MtH research can be performed from the bottom up, leaning heavily on hands-on design practice (rather than solely theory-driven reasoning): backpacking in nature, growing mushroom composites, performing with robots as nature companions, walking in a city to attune gravel and geological processes, and playing nature in video games in MtH design contexts. Our contribution, thus, foregrounds the value of embodied, situated, and designerly approaches, encouraging research that makes MtH design actionable from a practical perspective.',
+    image: '/images/publications/des-abs.png',
+    links: { pdf: 'https://dl.acm.org/doi/pdf/10.1145/3686169.3686195', doi: 'https://doi.org/10.1145/3686169.3686195'},
+    projectTags: ['More-than-Human', 'Design'],
+},
   {
-    id: 'biomaterials-2023',
-    title: 'Hands-on Biomaterials in HCI: A Practice-Led Review',
-    authors: ['Your Name'],
-    year: 2023,
-    venue: 'Interacting with Computers',
-    abstract: 'A review foregrounding hands-on prototyping with living materials as a source of design knowledge and methods.',
-    image: 'https://images.unsplash.com/photo-1549880338-65ddcdfd017b?q=80&w=1600&auto=format&fit=crop',
-    links: { pdf: '#', doi: '#', publisher: '#' },
-    projectTags: ['Biomaterials'],
-  },
+    id: 'shroom-cards-2025',
+    title: 'Exploring Roles and Purposes in More-than-Human Design through a Reflexive Design Studio Experiment',
+    authors: ['Çağlar Genç', 'Ferran Altarriba Bertran', 'Oğuz Oz Buruk', 'Sangwon Jung', 'Velvet Spors', 'Juho Hamari'],
+    year: 2025,
+    venue: 'Proceedings of the Academic Mindtrek Conference',
+    abstractShort: 'We present a reflexive design studio exploring human–non-human relations through the metaphor of a mushroom basket, articulating roles and purposes that offer a practical framework for nuanced More-than-Human (MtH) design.',
+    abstractFull: 'We are witnessing a shift towards a more-than-human (MtH) paradigm in HCI, recognizing non-human beings as interconnected with our existence, from daily life to design. While exciting MtH design works have emerged, they often rely on abstract concepts such as decentering that remain open to interpretation, leaving practical nuances underexplored. To address this, we adopted a bottom-up Research through Design approach—a Reflexive Design Studio—where, as a design team, we created and reflected on conceptual designs using the mushroom basket as a metaphor to explore human–non-human relationalities. From these explorations, we articulated roles (such as humans as materials and non-humans as co-makers) and purposes (such as activism, collective survival, and approximation) that illustrate how MtH design might be practiced with nuance. Relating these to theory and prior work, we contribute an exploratory framework offering generative and critical starting points for future MtH design research to test, contest, expand, and engage with MtH complexities in practice.',
+    image: '/images/publications/shroom.jpg',
+    links: { pdf: '#', doi: '#'},
+    projectTags: ['More-than-Human', 'Design','Fungi' ],
+},
+
 ];
 
 // ===== Utils =====
@@ -51,6 +32,15 @@ const uniqSorted = (arr) => Array.from(new Set(arr)).sort((a,b) => String(a).loc
 const byNewest = (a,b) => b.year - a.year;
 const byOldest = (a,b) => a.year - b.year;
 const byTitle = (a,b) => a.title.localeCompare(b.title);
+
+function summarizeAbstract(p, maxChars = 220) {
+  if (p.abstractShort) return p.abstractShort;
+  const src = p.abstractFull || p.abstract || '';
+  if (src.length <= maxChars) return src;
+  // trim to whole word
+  const cut = src.slice(0, maxChars);
+  return cut.slice(0, cut.lastIndexOf(' ')) + '…';
+}
 function buildShareUrl(id) {
   if (typeof window === 'undefined') return `#/pub/${id}`;
   return `${window.location.origin}${window.location.pathname}#/pub/${id}`;
@@ -120,14 +110,27 @@ function FiltersBar(state, setState, allProjectTags) {
 
 function PublicationCard(p, onOpen, onTagClick) {
   const card = el('div', { class: 'card' });
-  const imgbox = el('div', { class: 'imgbox' }, [ el('img', { src: p.image, alt: p.title }) ]);
+ const imgbox = el('div', { class: 'imgbox' }, [
+    el('a', { href: `#/pub/${p.id}`, onclick: (e) => { e.preventDefault(); onOpen(p); } }, [
+      el('img', { src: p.image, alt: p.title })
+    ])
+  ]);
   const body = el('div', { class: 'card-body' }, [
-    el('h3', { class: 'card-title' }, p.title),
-    el('div', { class: 'card-meta' }, `${p.authors.join(', ')} · ${p.venue} · ${p.year}`),
-    el('p', { class: 'card-abstract' }, p.abstract),
+    el('h3', { class: 'card-title' }, [
+      el('a', { href: `#/pub/${p.id}`, onclick: (e) => { e.preventDefault(); onOpen(p); }, style: 'color: inherit; text-decoration: none;' }, p.title)
+    ]),
+    el('div', { class: 'card-meta' }, [
+        document.createTextNode(`${p.authors.join(', ')}`),
+        el('br'),
+        el('em', {}, p.venue),
+        document.createTextNode(` · ${p.year}`)
+    ]),
+    el('p', { class: 'card-abstract' }, summarizeAbstract(p)),
     (function(){
       const tags = el('div', { class: 'card-tags' });
-      (p.projectTags || []).forEach(t => tags.appendChild(el('span', { class: 'pf-chip', title: 'Filter by project tag', onclick: () => onTagClick(t) }, t)));
+      (p.projectTags || []).forEach(t =>
+        tags.appendChild(el('span', { class: 'pf-chip', title: 'Filter by project tag', onclick: () => onTagClick(t) }, t))
+      );
       return tags;
     })(),
     (function(){
@@ -136,11 +139,11 @@ function PublicationCard(p, onOpen, onTagClick) {
       const links = el('div', { class: 'links' });
       if (p.links?.pdf) links.appendChild(el('a', { class: 'link-sm', href: p.links.pdf, target: '_blank', rel: 'noreferrer' }, 'PDF'));
       if (p.links?.doi) links.appendChild(el('a', { class: 'link-sm', href: p.links.doi, target: '_blank', rel: 'noreferrer' }, 'DOI'));
-      if (p.links?.publisher) links.appendChild(el('a', { class: 'link-sm', href: p.links.publisher, target: '_blank', rel: 'noreferrer' }, 'Publisher'));
       row.appendChild(links);
       return row;
     })()
   ]);
+
   card.appendChild(imgbox);
   card.appendChild(body);
   return card;
@@ -158,14 +161,17 @@ function PublicationDetail(pub, onBack){
   const right = el('div', {}, [
     el('h1', { class: 'detail-title' }, pub.title),
     el('div', { class: 'detail-sub' }, pub.authors.join(', ')),
-    el('div', { class: 'detail-sub' }, `${pub.venue} · ${pub.year}`),
+    el('div', { class: 'detail-sub' }, [
+        el('br'),
+        el('em', {}, pub.venue),
+        document.createTextNode(` · ${pub.year}`)
+    ]),
     (function(){ const wrap = el('div', { class: 'detail-tags' }); (pub.projectTags||[]).forEach(t => wrap.appendChild(el('span', { class: 'pf-chip' }, t))); return wrap; })(),
-    el('p', { class: 'detail-abstract' }, pub.abstract),
+    el('p', { class: 'detail-abstract' }, pub.abstractFull || pub.abstract || pub.abstractShort || ''),
     (function(){
       const row = el('div', { class: 'links' });
       if (pub.links?.pdf) row.appendChild(el('a', { class: 'link-sm', href: pub.links.pdf, target: '_blank', rel: 'noreferrer' }, 'PDF'));
       if (pub.links?.doi) row.appendChild(el('a', { class: 'link-sm', href: pub.links.doi, target: '_blank', rel: 'noreferrer' }, 'DOI'));
-      if (pub.links?.publisher) row.appendChild(el('a', { class: 'link-sm', href: pub.links.publisher, target: '_blank', rel: 'noreferrer' }, 'Publisher'));
       row.appendChild(el('span', {
         class: 'link-sm',
         onclick: () => {
