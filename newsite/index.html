@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Research & Publications</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;700;800&family=Anton&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Top Bar -->
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="brand" href="#/publications">
+        <span class="brand__title">PLAY·BIO</span>
+        <span class="brand__tag">Design Research</span>
+      </a>
+
+      <nav class="mainnav" aria-label="Primary">
+        <div class="mainnav__item mainnav__item--has-sub" aria-haspopup="true">
+          <a href="#/research" class="mainnav__link">Research</a>
+          <!-- Hover dropdown -->
+          <div class="mainnav__submenu" role="menu" aria-label="Research areas">
+            <a role="menuitem" href="#/research/more-than-human-design" class="mainnav__submenu-link">More-Than-Human Design</a>
+            <a role="menuitem" href="#/research/fashionable-wearables" class="mainnav__submenu-link">Fashionable Wearables</a>
+            <a role="menuitem" href="#/research/transhuman-communication" class="mainnav__submenu-link">Transhuman Communication</a>
+            <a role="menuitem" href="#/research/tangible-interaction-design" class="mainnav__submenu-link">Tangible Interaction Design</a>
+            <!-- NEW -->
+            <a role="menuitem" href="#/research/human-robot-interaction" class="mainnav__submenu-link">Human-Robot-Interaction</a>
+          </div>
+        </div>
+
+        <a class="mainnav__item mainnav__link" href="#/publications">Publications</a>
+        <a class="mainnav__item mainnav__link" href="#/cv">CV</a>
+        <a class="mainnav__item mainnav__link" href="#/about">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero / Banner -->
+  <section class="hero">
+    <div class="hero__overlay">
+      <h1 class="hero__title">Designing for <span class="accent-purple">More-than-Human</span> Relations in <span class="accent-green">Everyday Life</span></h1>
+      <p class="hero__lede">Explore research areas, publications, and ongoing projects.</p>
+    </div>
+  </section>
+
+  <!-- Content mount -->
+  <main id="app" class="page"></main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <div>© <span id="year"></span> Your Name</div>
+      <div class="muted">Supported by Research Council of Finland</div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
