@@ -193,6 +193,29 @@ function idxAny(cols, names){
   return -1;
 }
 
+function isAbsoluteUrl(value){
+  return /^(https?:)?\/\//i.test(value) || value.startsWith('mailto:') || value.startsWith('tel:');
+}
+
+function normalizeAssetPath(value){
+  if (!value) return '';
+  const v = String(value).trim();
+  if (!v) return '';
+
+  // keep external links, hash links, and already-rooted paths as-is
+  if (
+    isAbsoluteUrl(v) ||
+    v.startsWith('/') ||
+    v.startsWith('#') ||
+    v.startsWith('data:')
+  ) {
+    return v;
+  }
+
+  // make repo/local assets resolve from site root
+  return `/${v.replace(/^\.?\//, '')}`;
+}
+
 async function loadPublicationsFromSheet(){
   // Try GViz first
   try {
@@ -229,12 +252,14 @@ async function loadPublicationsFromSheet(){
 
     PUBLICATIONS = rows.map(r=>{
       const links={};
-      const pdf=cell(r,ix.pdf); if(pdf) links.pdf=pdf;
-      const doi=cell(r,ix.doi); if(doi) links.doi=doi;
-      const publisher=cell(r,ix.publisher); if(publisher) links.publisher=publisher;
+      const pdf=normalizeAssetPath(cell(r,ix.pdf)); if(pdf) links.pdf=pdf;
+      const doi=normalizeAssetPath(cell(r,ix.doi)); if(doi) links.doi=doi;
+      const publisher=normalizeAssetPath(cell(r,ix.publisher)); if(publisher) links.publisher=publisher;
       const videoRaw = cell(r,ix.video);
-      if (videoRaw){ const vids=splitPipes(videoRaw); links.video = (vids.length<=1) ? (vids[0]||'') : vids; }
-
+      if (videoRaw){
+        const vids=splitPipes(videoRaw).map(normalizeAssetPath);
+        links.video = (vids.length<=1) ? (vids[0]||'') : vids;
+      }
       const authors=split(cell(r,ix.authors),';,');
       const projectTags=split(cell(r,ix.projectTags),';,');
       const methodTags=split(cell(r,ix.methodTags),';,');
@@ -242,7 +267,7 @@ async function loadPublicationsFromSheet(){
       const year=Number(yearStr)|| (yearStr?Number(yearStr.replace(/[^\d]/g,'')):undefined);
 
       // choose first non-empty image among supported columns
-      const image = cell(r,ix.image);
+      const image = normalizeAssetPath(cell(r,ix.image));
 
       return {
         id: cell(r,ix.id) || cryptoRandomId(),
@@ -281,13 +306,13 @@ async function loadPublicationsFromSheet(){
       for (const k of keys){ if (r[k]) return r[k]; }
       return '';
     };
-    if(get('pdf','pdflink','pdf link')) links.pdf = get('pdf','pdflink','pdf link');
-    if(get('doi')) links.doi = get('doi');
-    if(get('publisher','publisher link','acm')) links.publisher = get('publisher','publisher link','acm');
-    if(get('video','videos')){
-      const vids = get('video','videos').split('|').map(s=>s.trim()).filter(Boolean);
-      links.video = vids.length<=1 ? (vids[0]||'') : vids;
-    }
+    if(get('pdf','pdflink','pdf link')) links.pdf = normalizeAssetPath(get('pdf','pdflink','pdf link'));
+      if(get('doi')) links.doi = normalizeAssetPath(get('doi'));
+      if(get('publisher','publisher link','acm')) links.publisher = normalizeAssetPath(get('publisher','publisher link','acm'));
+      if(get('video','videos')){
+        const vids = get('video','videos').split('|').map(s=>normalizeAssetPath(s.trim())).filter(Boolean);
+        links.video = vids.length<=1 ? (vids[0]||'') : vids;
+      }
 
     const authors=split(get('authors')||'', ';,');
     const projectTags=split(get('projecttags','project tags')||'', ';,');
@@ -295,7 +320,7 @@ async function loadPublicationsFromSheet(){
     const yearStr=get('year')||'';
     const year=Number(yearStr)|| (yearStr?Number(yearStr.replace(/[^\d]/g,'')):undefined);
 
-    const image = get('image','imageurl','thumbnail','thumb','img');
+    const image = normalizeAssetPath(get('image','imageurl','thumbnail','thumb','img'));
 
     return {
       id: get('id') || cryptoRandomId(),
