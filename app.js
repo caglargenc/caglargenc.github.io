@@ -23,7 +23,7 @@ const RESEARCH_AREAS = {
 const PROFILE = {
   photo: '/images/Caglar_caricature.png',
   bio: [
-    `I am an <strong>HCI/Design Researcher</strong> at the <strong><a href="https://research.tuni.fi/gameful-realities/gameful-futures-lab/" target="_blank" rel="noreferrer">Gameful Futures Lab</a></strong> at Tampere University, Finland. I have an <i>Industrial Design</i> background (B.Sc. from <a href="https://tasarim.itu.edu.tr/en" target="_blank" rel="noreferrer">Istanbul Technical University</a>) and received my Ph.D. in <i>Interaction Design</i> from <a href="https://www.ku.edu.tr/en/" target="_blank" rel="noreferrer">Koç University</a>, Istanbul.`,
+    `I am an <strong>HCI/Design Researcher</strong> at the <strong><a href="https://research.tuni.fi/gameful-realities/gameful-futures-lab/" target="_blank" rel="noreferrer">Gameful Futures Lab</a></strong> at Tampere University, Finland. I have an <i>Industrial Design</i> background (B.Sc. from Istanbul Technical University) and received my Ph.D. in <i>Interaction Design</i> from Koç University, Istanbul.`,
 
     `In my research, I use <strong>material-centered</strong>, <strong>speculative</strong>, and <strong>research-through-design</strong> approaches to explore <i>wearable interactive materials</i>, <i>posthuman and biomaterial play</i> for broadening the  design beyond the human. Currently, I am leading the <strong><a href="https://play-bio.com/" target="_blank" rel="noreferrer">Play-Bio project</a></strong> (Research Council of Finland, 2024-2028), which explores the design of playful experiences that can foster more-than-human relations, such as care and kinship, with everyday biomaterials such as bacteria, mushrooms, and plants.`
   ],
@@ -245,7 +245,8 @@ async function loadPublicationsFromSheet(){
     video:          idxAny(cols, ['video','videos']),
     projectTags:    idxAny(cols, ['projecttags','project tags']),
     methodTags:     idxAny(cols, ['methodtags','method tags']),
-    role:           idxAny(cols, ['role', 'roles'])
+    role:           idxAny(cols, ['role', 'roles']),
+    selected:       idxAny(cols, ['selected'])
   };
     function cell(r,i){ const c=r.c[i]; return (c?.f ?? c?.v ?? '').toString().trim(); }
     const split = (s, seps=';') => s ? s.split(new RegExp(`[${seps}]+`, 'g')).map(x=>x.trim()).filter(Boolean) : [];
@@ -267,26 +268,27 @@ async function loadPublicationsFromSheet(){
       const roleTags=split(cell(r,ix.role),';,');
       const yearStr=cell(r,ix.year);
       const year=Number(yearStr)|| (yearStr?Number(yearStr.replace(/[^\d]/g,'')):undefined);
-
+      const selected = cell(r,ix.selected).trim().toLowerCase() === 'x';
       // choose first non-empty image among supported columns
       const image = normalizeAssetPath(cell(r,ix.image));
 
-      return {
-        id: cell(r,ix.id) || cryptoRandomId(),
-        title: cell(r,ix.title),
-        authors, year,
-        venue: cell(r,ix.venue),
-        venueShort: cell(r,ix.venueShort),
-        type: cell(r,ix.type),
-        abstract: cell(r,ix.abstract),
-        abstractShort: cell(r,ix.abstractShort),
-        abstractFull: cell(r,ix.abstractFull),
-        image,
-        links,
-        projectTags,
-        methodTags,
-        roleTags
-      };
+        return {
+          id: cell(r,ix.id) || cryptoRandomId(),
+          title: cell(r,ix.title),
+          authors, year,
+          venue: cell(r,ix.venue),
+          venueShort: cell(r,ix.venueShort),
+          type: cell(r,ix.type),
+          abstract: cell(r,ix.abstract),
+          abstractShort: cell(r,ix.abstractShort),
+          abstractFull: cell(r,ix.abstractFull),
+          image,
+          links,
+          projectTags,
+          methodTags,
+          roleTags,
+          selected
+        };
     }).filter(p=>p.title);
     if (!PUBLICATIONS.length) throw new Error('No rows parsed from GViz JSON');
     return;
@@ -324,24 +326,26 @@ async function loadPublicationsFromSheet(){
     const yearStr=get('year')||'';
     const year=Number(yearStr)|| (yearStr?Number(yearStr.replace(/[^\d]/g,'')):undefined);
 
+    const selected = (get('selected') || '').trim().toLowerCase() === 'x';
     const image = normalizeAssetPath(get('image','imageurl','thumbnail','thumb','img'));
 
-    return {
-      id: get('id') || cryptoRandomId(),
-      title: get('title') || '',
-      authors, year,
-      venue: get('venue') || '',
-      venueShort: get('venueshort','venue short') || '',
-      type: get('type') || '',
-      abstract: get('abstract') || '',
-      abstractShort: get('abstractshort','abstract short') || '',
-      abstractFull: get('abstractfull','abstract full') || '',
-      image,
-      links,
-      projectTags,
-      methodTags,
-      roleTags
-    };
+      return {
+        id: get('id') || cryptoRandomId(),
+        title: get('title') || '',
+        authors, year,
+        venue: get('venue') || '',
+        venueShort: get('venueshort','venue short') || '',
+        type: get('type') || '',
+        abstract: get('abstract') || '',
+        abstractShort: get('abstractshort','abstract short') || '',
+        abstractFull: get('abstractfull','abstract full') || '',
+        image,
+        links,
+        projectTags,
+        methodTags,
+        roleTags,
+        selected
+      };
   }).filter(p=>p.title);
   if (!PUBLICATIONS.length) throw new Error('No rows parsed from CSV');
 }
@@ -1001,7 +1005,215 @@ function socialIcon(type){
   return wrap;
 }
 
+function SelectedPublicationsCarousel(){
+  const items = PUBLICATIONS
+    .filter(p => p.selected && p.image);
+
+  if (!items.length) return null;
+
+  const section = el('section', { class:'landing-carousel' });
+  const viewport = el('div', { class:'landing-carousel__viewport' });
+  const track = el('div', { class:'landing-carousel__track' });
+
+  items.forEach(pub => {
+    const href = `#/pub/${pub.id}`;
+
+    const card = el(
+      'a',
+      {
+        class:'landing-carousel__item',
+        href,
+        onclick:(e)=>{
+          e.preventDefault();
+          nav(`/pub/${pub.id}`);
+        }
+      }
+    );
+
+    card.appendChild(
+      el('img', {
+        src: pub.image,
+        alt: pub.title
+      })
+    );
+
+    const overlay = el('div', { class:'landing-carousel__overlay' });
+
+    if (pub.type) {
+      overlay.appendChild(
+        el('div', { class:'landing-carousel__type' }, pub.type)
+      );
+    }
+
+    overlay.appendChild(
+      el('div', { class:'landing-carousel__title' }, pub.title)
+    );
+
+    if (pub.venueShort) {
+      overlay.appendChild(
+        el('div', { class:'landing-carousel__venue' }, pub.venueShort)
+      );
+    }
+
+    card.appendChild(overlay);
+    track.appendChild(card);
+  });
+
+  viewport.appendChild(track);
+  section.appendChild(viewport);
+
+  const prevBtn = el(
+    'button',
+    {
+      class:'landing-carousel__arrow landing-carousel__arrow--prev',
+      type:'button',
+      'aria-label':'Show previous publications'
+    },
+    '‹'
+  );
+
+  const nextBtn = el(
+    'button',
+    {
+      class:'landing-carousel__arrow landing-carousel__arrow--next',
+      type:'button',
+      'aria-label':'Show next publications'
+    },
+    '›'
+  );
+
+  section.appendChild(prevBtn);
+  section.appendChild(nextBtn);
+
+  let currentPage = 0;
+  let timer = null;
+  let startX = 0;
+  let currentX = 0;
+  let isDragging = false;
+
+function visibleCount(){
+  const w = window.innerWidth;
+  if (w <= 640) return 1;
+  if (w <= 900) return 2;
+  return 3;
+}
+
+  function totalPages(){
+    return Math.max(1, Math.ceil(items.length / visibleCount()));
+  }
+
+  function update(animate = true){
+    const count = visibleCount();
+    const pages = totalPages();
+
+    section.style.setProperty('--landing-visible-count', String(count));
+
+    if (currentPage >= pages) currentPage = 0;
+    if (currentPage < 0) currentPage = pages - 1;
+
+    track.style.transition = animate ? 'transform .55s ease' : 'none';
+    track.style.transform = `translateX(-${currentPage * 100}%)`;
+
+    const shouldShowArrows = items.length > count;
+    prevBtn.style.display = shouldShowArrows ? 'flex' : 'none';
+    nextBtn.style.display = shouldShowArrows ? 'flex' : 'none';
+  }
+
+  function next(){
+    currentPage = (currentPage + 1) % totalPages();
+    update(true);
+  }
+
+  function prev(){
+    currentPage = (currentPage - 1 + totalPages()) % totalPages();
+    update(true);
+  }
+
+  function startAuto(){
+    stopAuto();
+    if (items.length > visibleCount()) {
+      timer = setInterval(next, 4000);
+    }
+  }
+
+  function stopAuto(){
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+    }
+  }
+
+  prevBtn.addEventListener('click', () => {
+    prev();
+    startAuto();
+  });
+
+  nextBtn.addEventListener('click', () => {
+    next();
+    startAuto();
+  });
+
+  viewport.addEventListener('mouseenter', stopAuto);
+  viewport.addEventListener('mouseleave', startAuto);
+
+  viewport.addEventListener('touchstart', (e) => {
+    if (!e.touches.length) return;
+    stopAuto();
+    isDragging = true;
+    startX = e.touches[0].clientX;
+    currentX = startX;
+    track.style.transition = 'none';
+  }, { passive: true });
+
+  viewport.addEventListener('touchmove', (e) => {
+    if (!isDragging || !e.touches.length) return;
+    currentX = e.touches[0].clientX;
+  }, { passive: true });
+
+  viewport.addEventListener('touchend', () => {
+    if (!isDragging) return;
+    const deltaX = currentX - startX;
+    const threshold = 50;
+
+    isDragging = false;
+
+    if (deltaX > threshold) {
+      prev();
+    } else if (deltaX < -threshold) {
+      next();
+    } else {
+      update(true);
+    }
+
+    startAuto();
+  });
+
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      update(false);
+      startAuto();
+    }, 120);
+  });
+
+  update(false);
+  startAuto();
+
+  return section;
+}
+
+
 function homeView(){
+  const frag = document.createDocumentFragment();
+
+  // 1) carousel first
+  const carousel = SelectedPublicationsCarousel();
+  if (carousel) {
+    frag.appendChild(carousel);
+  }
+
+  // 2) bio / hero
   const section = el('section', { class: 'home-hero' });
 
   const media = el('aside', { class: 'home-hero__media' });
@@ -1014,36 +1226,86 @@ function homeView(){
     })
   );
 
-  const links = el('div', { class: 'home-hero__links' });
-  PROFILE.links.forEach(item => {
-    const link = el(
+  media.append(photoWrap);
+
+  const panel = el('div', { class: 'home-hero__panel prose' });
+
+  PROFILE.bio.forEach(paragraph => {
+    const p = el('p');
+    p.innerHTML = paragraph;
+    panel.appendChild(p);
+  });
+
+  // contact row
+  const reach = el('div', { class: 'reach-row', 'aria-label': 'You can reach me' });
+  const reachLabel = el('h2', { class: 'reach-row__label' }, 'You can reach me');
+  const reachLine = el('div', { class: 'reach-row__line', 'aria-hidden': 'true' });
+  const reachLinks = el('div', { class: 'reach-row__links' });
+
+  PROFILE.links.forEach(link => {
+    const a = el(
       'a',
       {
-        class: 'home-hero__link home-hero__link--icon',
-        href: item.href,
-        target: item.href.startsWith('mailto:') ? '_self' : '_blank',
-        rel: item.href.startsWith('mailto:') ? '' : 'noreferrer',
-        'aria-label': item.label,
-        title: item.label
+        class: 'reach-row__link',
+        href: link.href,
+        title: link.label,
+        'aria-label': link.label,
+        ...(link.href.startsWith('mailto:') ? {} : { target: '_blank', rel: 'noreferrer' })
       }
     );
 
-    link.appendChild(socialIcon(item.icon));
-    links.appendChild(link);
+    a.appendChild(socialIcon(link.icon));
+    reachLinks.appendChild(a);
   });
 
-  media.append(photoWrap, links);
-
-    const panel = el('div', { class: 'home-hero__panel prose' });
-
-    PROFILE.bio.forEach(paragraph => {
-      const p = el('p');
-      p.innerHTML = paragraph;
-      panel.appendChild(p);
-    });
+  reach.append(reachLabel, reachLine, reachLinks);
+  panel.appendChild(reach);
 
   section.append(media, panel);
-  return section;
+  frag.appendChild(section);
+
+  // 3) most recent publications
+  const recentSection = el('section', { class: 'home-recent' });
+
+  recentSection.appendChild(
+    el('h2', { class: 'home-recent__title' }, 'MOST RECENT PUBLICATIONS')
+  );
+
+  const recentList = PUBLICATIONS
+    .filter(p => Number.isFinite(p.year))
+    .slice()
+    .sort(byNewest)
+    .slice(0, 6);
+
+  if (recentList.length) {
+    const grid = el('div', { class: 'grid home-recent__grid' });
+
+    recentList.forEach(p =>
+      grid.appendChild(
+        Card(
+          p,
+          (pub) => nav(`/pub/${pub.id}`),
+          (tag, type='project') => {
+            if (type === 'method') {
+              setState({ methodTags:[tag] });
+            } else {
+              setState({ projectTags:[tag] });
+            }
+          }
+        )
+      )
+    );
+
+    recentSection.appendChild(grid);
+  } else {
+    recentSection.appendChild(
+      el('div', { class:'muted' }, 'No recent publications found.')
+    );
+  }
+
+  frag.appendChild(recentSection);
+
+  return frag;
 }
 
 
