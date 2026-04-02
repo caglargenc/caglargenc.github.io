@@ -227,25 +227,26 @@ async function loadPublicationsFromSheet(){
     const cols = json.table.cols.map(c => (c.label || '').trim());
     const rows = json.table.rows || [];
 
-    const ix = {
-      id:             idxAny(cols, ['id']),
-      title:          idxAny(cols, ['title']),
-      authors:        idxAny(cols, ['authors']),
-      year:           idxAny(cols, ['year']),
-      venue:          idxAny(cols, ['venue']),
-      venueShort:     idxAny(cols, ['venueShort', 'venue short']),
-      type:           idxAny(cols, ['type']),
-      abstract:       idxAny(cols, ['abstract']),
-      abstractShort:  idxAny(cols, ['abstractshort','abstract short']),
-      abstractFull:   idxAny(cols, ['abstractfull','abstract full']),
-      image:          idxAny(cols, ['image','imageurl','thumbnail','thumb','img']),
-      pdf:            idxAny(cols, ['pdf','pdflink','pdf link']),
-      doi:            idxAny(cols, ['doi']),
-      publisher:      idxAny(cols, ['publisher','publisher link','acm']),
-      video:          idxAny(cols, ['video','videos']),
-      projectTags:    idxAny(cols, ['projecttags','project tags']),
-      methodTags:     idxAny(cols, ['methodtags','method tags'])
-    };
+  const ix = {
+    id:             idxAny(cols, ['id']),
+    title:          idxAny(cols, ['title']),
+    authors:        idxAny(cols, ['authors']),
+    year:           idxAny(cols, ['year']),
+    venue:          idxAny(cols, ['venue']),
+    venueShort:     idxAny(cols, ['venueShort', 'venue short']),
+    type:           idxAny(cols, ['type']),
+    abstract:       idxAny(cols, ['abstract']),
+    abstractShort:  idxAny(cols, ['abstractshort','abstract short']),
+    abstractFull:   idxAny(cols, ['abstractfull','abstract full']),
+    image:          idxAny(cols, ['image','imageurl','thumbnail','thumb','img']),
+    pdf:            idxAny(cols, ['pdf','pdflink','pdf link']),
+    doi:            idxAny(cols, ['doi']),
+    publisher:      idxAny(cols, ['publisher','publisher link','acm']),
+    video:          idxAny(cols, ['video','videos']),
+    projectTags:    idxAny(cols, ['projecttags','project tags']),
+    methodTags:     idxAny(cols, ['methodtags','method tags']),
+    role:           idxAny(cols, ['role', 'roles'])
+  };
     function cell(r,i){ const c=r.c[i]; return (c?.f ?? c?.v ?? '').toString().trim(); }
     const split = (s, seps=';') => s ? s.split(new RegExp(`[${seps}]+`, 'g')).map(x=>x.trim()).filter(Boolean) : [];
     const splitPipes = (s) => s ? s.split('|').map(x=>x.trim()).filter(Boolean) : [];
@@ -263,6 +264,7 @@ async function loadPublicationsFromSheet(){
       const authors=split(cell(r,ix.authors),';,');
       const projectTags=split(cell(r,ix.projectTags),';,');
       const methodTags=split(cell(r,ix.methodTags),';,');
+      const roleTags=split(cell(r,ix.role),';,');
       const yearStr=cell(r,ix.year);
       const year=Number(yearStr)|| (yearStr?Number(yearStr.replace(/[^\d]/g,'')):undefined);
 
@@ -282,7 +284,8 @@ async function loadPublicationsFromSheet(){
         image,
         links,
         projectTags,
-        methodTags
+        methodTags,
+        roleTags
       };
     }).filter(p=>p.title);
     if (!PUBLICATIONS.length) throw new Error('No rows parsed from GViz JSON');
@@ -317,6 +320,7 @@ async function loadPublicationsFromSheet(){
     const authors=split(get('authors')||'', ';,');
     const projectTags=split(get('projecttags','project tags')||'', ';,');
     const methodTags=split(get('methodtags','method tags')||'', ';,');
+    const roleTags=split(get('role','roles')||'', ';,');
     const yearStr=get('year')||'';
     const year=Number(yearStr)|| (yearStr?Number(yearStr.replace(/[^\d]/g,'')):undefined);
 
@@ -335,7 +339,8 @@ async function loadPublicationsFromSheet(){
       image,
       links,
       projectTags,
-      methodTags
+      methodTags,
+      roleTags
     };
   }).filter(p=>p.title);
   if (!PUBLICATIONS.length) throw new Error('No rows parsed from CSV');
@@ -373,7 +378,7 @@ function cryptoRandomId(){
 }
 
 /* ========= UI bits ========= */
-function FiltersBar(state,setState,allTags){
+function FiltersBar(state,setState,allTags,allMethodTags){
   const wrap=el('div',{class:'filters'});
   const row=el('div',{class:'filters__row'});
 
@@ -382,33 +387,59 @@ function FiltersBar(state,setState,allTags){
   input.addEventListener('input',(e)=>setState({search:e.target.value}));
   const b1=el('button',{class:'btn',onclick:()=>setState({sort:'newest'})},'Newest');
   const b2=el('button',{class:'btn',onclick:()=>setState({sort:'oldest'})},'Oldest');
-  const b3=el('button',{class:'btn',onclick:()=>setState({sort:'title'})},'Title A→Z');
-  searchRow.append(input,b1,b2,b3);
+  searchRow.append(input,b1,b2);
 
-  const chips=el('div',{class:'chips'});
-  chips.appendChild(el('span',{class:'muted'},'Topical tags:'));
+  const topicalChips=el('div',{class:'chips'});
+  topicalChips.appendChild(el('span',{class:'muted'},'Topical tags:'));
   allTags.forEach(t=>{
-    const ch=el('span',{class:'chip'+(state.projectTags.includes(t)?' active':''),onclick:()=>toggleTag(t)},t);
-    chips.appendChild(ch);
+    const ch=el(
+      'span',
+      {
+        class:'chip'+(state.projectTags.includes(t)?' active':''),
+        onclick:()=>toggleProjectTag(t)
+      },
+      t
+    );
+    topicalChips.appendChild(ch);
   });
+
+  const methodChips=el('div',{class:'chips'});
+  methodChips.appendChild(el('span',{class:'muted'},'Method tags:'));
+  allMethodTags.forEach(t=>{
+    const ch=el(
+      'span',
+      {
+        class:'chip'+(state.methodTags.includes(t)?' active':''),
+        onclick:()=>toggleMethodTag(t)
+      },
+      t
+    );
+    methodChips.appendChild(ch);
+  });
+
   if(state.projectTags.length>0 || state.methodTags.length>0){
-  chips.appendChild(
-    el(
+    const clearBtn = el(
       'button',
       {class:'btn',onclick:()=>setState({projectTags:[], methodTags:[]})},
       'Clear'
-    )
-  );
+    );
+    topicalChips.appendChild(clearBtn);
   }
 
-  row.append(searchRow,chips);
+  row.append(searchRow,topicalChips,methodChips);
   wrap.appendChild(row);
   return wrap;
 
-  function toggleTag(t){
+  function toggleProjectTag(t){
     const on=state.projectTags.includes(t);
-    const next=on?state.projectTags.filter(x=>x!==t):state.projectTags.concat(t);
+    const next=on ? state.projectTags.filter(x=>x!==t) : state.projectTags.concat(t);
     setState({projectTags:next});
+  }
+
+  function toggleMethodTag(t){
+    const on=state.methodTags.includes(t);
+    const next=on ? state.methodTags.filter(x=>x!==t) : state.methodTags.concat(t);
+    setState({methodTags:next});
   }
 }
 
@@ -574,79 +605,270 @@ function Card(p,onOpen,onTagClick){
   return card;
 }
 
+function isCaglarName(name){
+  const normalized = String(name || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+
+  return normalized === 'caglar genc';
+}
+
+function renderAuthors(authors = []){
+  const wrap = el('div', { class: 'detail-authors' });
+
+  authors.forEach((author, i) => {
+    if (i > 0) wrap.appendChild(document.createTextNode(', '));
+
+    if (isCaglarName(author)) {
+      wrap.appendChild(el('strong', {}, author));
+    } else {
+      wrap.appendChild(document.createTextNode(author));
+    }
+  });
+
+  return wrap;
+}
+
+function renderLabeledTagsLine(label, tags = []){
+  const line = el('div', { class: 'detail-tagline' });
+
+  line.appendChild(
+    el('span', { class: 'detail-tagline__label' }, `${label}: `)
+  );
+
+  tags.forEach((tag, i) => {
+    line.appendChild(
+      el('span', { class: 'detail-tagline__tag' }, tag)
+    );
+
+    if (i < tags.length - 1) {
+      line.appendChild(
+        el('span', { class: 'detail-tagline__comma' }, ', ')
+      );
+    }
+  });
+
+  return line;
+}
+
+
 /* ======== Detail view ======== */
 function Detail(pub,onBack){
-  const root=el('div',{class:'detail'});
+  const root = el('div', { class:'detail' });
 
-  root.appendChild(el('a',{class:'link-sm',href:'#/publications',onclick:(e)=>{e.preventDefault();onBack();}},'← Back to all publications'));
-
-  const content=el('div',{class:'detail-right-only'});
-  content.appendChild(el('h1',{class:'detail-title'},pub.title));
-
-  const tags=el('div',{class:'chips'}); (pub.projectTags||[]).forEach(x=>tags.appendChild(el('span',{class:'chip'},x))); content.appendChild(tags);
-
-// Authors on their own line
-if (pub.authors && pub.authors.length){
-  content.appendChild(
-    el('div', { class: 'detail-sub' }, pub.authors.join(', '))
+  root.appendChild(
+    el(
+      'a',
+      {
+        class:'link-sm',
+        href:'#/publications',
+        onclick:(e)=>{
+          e.preventDefault();
+          onBack();
+        }
+      },
+      '← Back to all publications'
+    )
   );
-}
 
-// Venue on its own line, in italics
-if (pub.venue){
-  content.appendChild(
-    el('div', { class: 'detail-sub' }, el('em', {}, pub.venue))
-  );
-}
+  const content = el('div', { class:'detail-right-only' });
 
-// Year on its own line
-if (pub.year){
-  content.appendChild(
-    el('div', { class: 'detail-sub' }, String(pub.year))
-  );
-}
-
-
-
-  if(pub.image){
-    const imgWrap=el('div',{class:'imgbox',style:'margin-top:16px;'}); imgWrap.appendChild(el('img',{src:pub.image,alt:pub.title})); content.appendChild(imgWrap);
+  // project tags
+  if (pub.projectTags && pub.projectTags.length) {
+    const topTags = el('div', { class:'chips chips--top detail-project-tags' });
+    (pub.projectTags || []).forEach(tag => {
+      topTags.appendChild(
+        el('span', { class:'chip chip--small' }, tag)
+      );
+    });
+    content.appendChild(topTags);
   }
 
-  const full=(pub.abstractFull && pub.abstractFull.trim().length)? pub.abstractFull : (pub.abstract||'');
-  if(full) content.appendChild(el('p',{class:'detail-abstract'},full));
+  // type above title
+  if (pub.type) {
+    content.appendChild(
+      el('div', { class:'card-type detail-type' }, pub.type)
+    );
+  }
 
-  const linksRow=el('div',{class:'links'});
-  if(pub.links?.pdf) linksRow.appendChild(el('a',{class:'link-sm',href:pub.links.pdf,target:'_blank',rel:'noreferrer'},'PDF'));
-  if(pub.links?.doi) linksRow.appendChild(el('a',{class:'link-sm',href:pub.links.doi,target:'_blank',rel:'noreferrer'},'DOI'));
-  content.appendChild(linksRow);
+  // title
+  content.appendChild(
+    el('h1', { class:'detail-title' }, pub.title)
+  );
 
-  const videos = Array.isArray(pub.links?.video)? pub.links.video : (pub.links?.video?[pub.links.video]:[]);
-  if(videos.length>0){
-    content.appendChild(el('h3',{class:'section-title'},'Watch'));
-    if(videos.length===1){
+  // authors
+  if (pub.authors && pub.authors.length) {
+    content.appendChild(renderAuthors(pub.authors));
+  }
+
+  // venue line
+  if (pub.venueShort || pub.venue) {
+    const venueLine = el('div', { class:'detail-venue-line' });
+
+    if (pub.venueShort) {
+      venueLine.appendChild(
+        el('span', { class:'card-venue-short detail-venue-short' }, pub.venueShort)
+      );
+    }
+
+    if (pub.venueShort && pub.venue) {
+      venueLine.appendChild(
+        el('span', { class:'detail-venue-sep' }, ' - ')
+      );
+    }
+
+    if (pub.venue) {
+      venueLine.appendChild(
+        el('span', { class:'detail-venue-full' }, pub.venue)
+      );
+    }
+
+    content.appendChild(venueLine);
+  }
+
+  // links directly after venue
+  const linksRow = el('div', { class:'links links--actions detail-links' });
+
+  if (pub.links?.pdf) {
+    linksRow.appendChild(
+      el(
+        'a',
+        {
+          class:'action-btn action-btn--icon',
+          href:pub.links.pdf,
+          target:'_blank',
+          rel:'noreferrer',
+          title:'Open PDF',
+          'aria-label':'Open PDF'
+        },
+        el('i', { class:'bi bi-filetype-pdf', 'aria-hidden':'true' })
+      )
+    );
+  }
+
+  if (pub.links?.doi) {
+    linksRow.appendChild(
+      el(
+        'a',
+        {
+          class:'action-btn action-btn--icon',
+          href:pub.links.doi,
+          target:'_blank',
+          rel:'noreferrer',
+          title:'Open DOI',
+          'aria-label':'Open DOI'
+        },
+        el('i', { class:'bi bi-link-45deg', 'aria-hidden':'true' })
+      )
+    );
+  }
+
+  if (pub.links?.publisher) {
+    linksRow.appendChild(
+      el(
+        'a',
+        {
+          class:'action-btn action-btn--text',
+          href:pub.links.publisher,
+          target:'_blank',
+          rel:'noreferrer'
+        },
+        'Publisher'
+      )
+    );
+  }
+
+  if (pub.links?.pdf || pub.links?.doi || pub.links?.publisher) {
+    content.appendChild(linksRow);
+  }
+
+  // abstract 
+  const full = (pub.abstractFull && pub.abstractFull.trim().length)
+    ? pub.abstractFull
+    : (pub.abstract || '');
+
+  if (full) {
+    content.appendChild(
+      el('p', { class:'detail-abstract' }, full)
+    );
+  }
+
+  // methods
+  if (pub.methodTags && pub.methodTags.length) {
+    content.appendChild(renderLabeledTagsLine('Methods', pub.methodTags));
+  }
+
+  // role
+  if (pub.roleTags && pub.roleTags.length) {
+    content.appendChild(renderLabeledTagsLine('Role', pub.roleTags));
+  }
+
+
+
+  // image after abstract
+  if (pub.image) {
+    const imgWrap = el('div', { class:'imgbox', style:'margin-top:16px;' });
+    imgWrap.appendChild(
+      el('img', { src:pub.image, alt:pub.title })
+    );
+    content.appendChild(imgWrap);
+  }
+
+  // video after image
+  const videos = Array.isArray(pub.links?.video)
+    ? pub.links.video
+    : (pub.links?.video ? [pub.links.video] : []);
+
+  if (videos.length > 0) {
+    content.appendChild(el('h3', { class:'section-title' }, 'Video:'));
+
+    if (videos.length === 1) {
       content.appendChild(buildVideoEmbed(videos[0]));
-    }else{
-      const selWrap=el('div',{class:'video-select'}); const sel=el('select',{class:'input'});
-      videos.forEach((u,i)=>{let host='';try{host=new URL(u).hostname.replace(/^www\./,'');}catch{host=`Video ${i+1}`;} sel.appendChild(el('option',{},`Video ${i+1}: ${host}`));});
-      const slot=el('div'); function render(idx){slot.innerHTML=''; slot.appendChild(buildVideoEmbed(videos[idx]));}
-      sel.addEventListener('change',()=>render(sel.selectedIndex));
-      selWrap.appendChild(sel); content.appendChild(selWrap); content.appendChild(slot); render(0);
+    } else {
+      const selWrap = el('div', { class:'video-select' });
+      const sel = el('select', { class:'input' });
+
+      videos.forEach((u, i) => {
+        let host = '';
+        try {
+          host = new URL(u).hostname.replace(/^www\./, '');
+        } catch {
+          host = `Video ${i + 1}`;
+        }
+        sel.appendChild(
+          el('option', {}, `Video ${i + 1}: ${host}`)
+        );
+      });
+
+      const slot = el('div');
+
+      function render(idx){
+        slot.innerHTML = '';
+        slot.appendChild(buildVideoEmbed(videos[idx]));
+      }
+
+      sel.addEventListener('change', () => render(sel.selectedIndex));
+      selWrap.appendChild(sel);
+      content.appendChild(selWrap);
+      content.appendChild(slot);
+      render(0);
     }
   }
-
 
   root.appendChild(content);
   return root;
 }
-
 /* ========= Views & Router ========= */
 const state={search:'',sort:'newest',projectTags:[],methodTags:[]};
 function setState(p){Object.assign(state,p);render();}
 
 function publicationsView(){
   const frag=document.createDocumentFragment();
-  const allTags=uniqSorted(PUBLICATIONS.flatMap(p=>p.projectTags||[]));
-  frag.appendChild(FiltersBar(state,setState,allTags));
+  const allTags = uniqSorted(PUBLICATIONS.flatMap(p => p.projectTags || []));
+  const allMethodTags = uniqSorted(PUBLICATIONS.flatMap(p => p.methodTags || []));
+  frag.appendChild(FiltersBar(state,setState,allTags,allMethodTags));
 
   const q=state.search.trim().toLowerCase();
   let list=PUBLICATIONS.filter(p=>{
@@ -674,7 +896,6 @@ function publicationsView(){
   });
   if(state.sort==='newest') list=list.slice().sort(byNewest);
   if(state.sort==='oldest') list=list.slice().sort(byOldest);
-  if(state.sort==='title')  list=list.slice().sort(byTitle);
 
   if(list.length===0){
     frag.appendChild(el('div',{class:'muted'},'No results match your filters.'));
