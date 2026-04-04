@@ -517,22 +517,19 @@ function Card(p,onOpen,onTagClick){
     });
   }
 
-  const body=el('div',{class:'card-body'},[
-    (p.projectTags && p.projectTags.length) ? projectTagsRow : null,
+const body=el('div',{class:'card-body'},[
+  (p.projectTags && p.projectTags.length) ? projectTagsRow : null,
 
-    el('h3',{class:'card-title'},[ titleLink ]),
+  el('h3',{class:'card-title'},[ titleLink ]),
+  p.venueShort
+    ? el('div',{class:'card-venue-short'},p.venueShort)
+    : null,
 
-    (p.methodTags && p.methodTags.length) ? methodTagsRow : null,
+  p.type
+    ? el('div',{class:'card-type'},p.type)
+    : null,
 
-    p.venueShort
-      ? el('div',{class:'card-venue-short'},p.venueShort)
-      : null,
-
-    p.type
-      ? el('div',{class:'card-type'},p.type)
-      : null,
-
-    shortAbs ? el('p',{class:'card-abstract'},shortAbs) : null,
+  shortAbs ? el('p',{class:'card-abstract'},shortAbs) : null,
 
     (()=> {
       const row = el('div',{class:'row-split'});
@@ -813,7 +810,7 @@ function Detail(pub,onBack){
 
   // image after abstract
   if (pub.image) {
-    const imgWrap = el('div', { class:'imgbox', style:'margin-top:16px;' });
+    const imgWrap = el('div', { class:'imgbox detail-image', style:'margin-top:16px;' });
     imgWrap.appendChild(
       el('img', { src:pub.image, alt:pub.title })
     );
@@ -1011,9 +1008,12 @@ function SelectedPublicationsCarousel(){
 
   if (!items.length) return null;
 
-  const section = el('section', { class:'landing-carousel' });
-  const viewport = el('div', { class:'landing-carousel__viewport' });
-  const track = el('div', { class:'landing-carousel__track' });
+const section = el('section', { class:'landing-carousel home-selected' });
+const title = el('h2', { class:'home-recent__title' }, 'Selected Publications');
+const viewport = el('div', { class:'landing-carousel__viewport' });
+const track = el('div', { class:'landing-carousel__track' });
+
+section.appendChild(title);
 
   items.forEach(pub => {
     const href = `#/pub/${pub.id}`;
@@ -1206,14 +1206,11 @@ function visibleCount(){
 
 function homeView(){
   const frag = document.createDocumentFragment();
+  const isMobile = window.matchMedia('(max-width: 900px)').matches;
 
-  // 1) carousel first
   const carousel = SelectedPublicationsCarousel();
-  if (carousel) {
-    frag.appendChild(carousel);
-  }
 
-  // 2) bio / hero
+  // hero / bio section
   const section = el('section', { class: 'home-hero' });
 
   const media = el('aside', { class: 'home-hero__media' });
@@ -1236,10 +1233,8 @@ function homeView(){
     panel.appendChild(p);
   });
 
-  // contact row
-  const reach = el('div', { class: 'reach-row', 'aria-label': 'You can reach me' });
-  const reachLabel = el('h2', { class: 'reach-row__label' }, 'You can reach me');
-  const reachLine = el('div', { class: 'reach-row__line', 'aria-hidden': 'true' });
+  // contact row (icons only)
+  const reach = el('div', { class: 'reach-row', 'aria-label': 'Contact links' });
   const reachLinks = el('div', { class: 'reach-row__links' });
 
   PROFILE.links.forEach(link => {
@@ -1258,13 +1253,16 @@ function homeView(){
     reachLinks.appendChild(a);
   });
 
-  reach.append(reachLabel, reachLine, reachLinks);
+  reach.append(reachLinks);
   panel.appendChild(reach);
 
   section.append(media, panel);
-  frag.appendChild(section);
 
-  // 3) most recent publications
+  // always show hero before carousel
+  frag.appendChild(section);
+  if (carousel) frag.appendChild(carousel);
+
+  // most recent publications
   const recentSection = el('section', { class: 'home-recent' });
 
   recentSection.appendChild(
