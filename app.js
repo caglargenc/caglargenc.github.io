@@ -1004,7 +1004,9 @@ function socialIcon(type){
 
 function SelectedPublicationsCarousel(){
   const items = PUBLICATIONS
-    .filter(p => p.selected && p.image);
+    .filter(p => p.selected && p.image)
+    .slice()
+    .sort(byNewest);
 
   if (!items.length) return null;
 
@@ -1255,6 +1257,22 @@ function homeView(){
 
   reach.append(reachLinks);
   panel.appendChild(reach);
+
+  const emailLine = el(
+    'div',
+    { class: 'home-hero__email' },
+    [
+      el(
+        'a',
+        {
+          href: 'mailto:id.caglargenc@gmail.com'
+        },
+        'id.caglargenc@gmail.com'
+      )
+    ]
+  );
+
+  panel.appendChild(emailLine);
 
   section.append(media, panel);
 
